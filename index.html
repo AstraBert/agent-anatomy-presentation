@@ -1,0 +1,1929 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>The Anatomy of an AI Agent</title>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:wght@300;400;500;600&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            /* === CSS CUSTOM PROPERTIES === */
+            :root {
+                --bg-outer: #2a2a2a;
+                --bg-page: #f8f6f1;
+                --bg-muted: #f0ede8;
+                --text-pri: #1a1a1a;
+                --text-sec: #6b6258;
+                --text-meta: #9a8f83;
+                --rule: #d8d0c4;
+                --tab-mint: #98d4bb;
+                --tab-lav: #c7b8ea;
+                --tab-pink: #f4b8c5;
+                --tab-sky: #a8d8ea;
+                --tab-cream: #ffe6a7;
+                --accent: #5a7c6a;
+                --ease: cubic-bezier(0.16, 1, 0.3, 1);
+                --title-size: clamp(1.8rem, 4.5vw, 3.8rem);
+                --h2-size: clamp(1.3rem, 3vw, 2.4rem);
+                --body-size: clamp(0.72rem, 1.25vw, 0.98rem);
+                --small-size: clamp(0.58rem, 0.85vw, 0.72rem);
+                --pad: clamp(1.2rem, 2.8vw, 3rem);
+                --gap: clamp(0.6rem, 1.2vh, 1.2rem);
+            }
+
+            /* === VIEWPORT BASE (mandatory) === */
+            *,
+            *::before,
+            *::after {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+            html,
+            body {
+                height: 100%;
+                overflow-x: hidden;
+            }
+            html {
+                scroll-snap-type: y mandatory;
+                scroll-behavior: smooth;
+            }
+
+            .slide {
+                width: 100vw;
+                height: 100vh;
+                height: 100dvh;
+                overflow: hidden;
+                scroll-snap-align: start;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+                background: var(--bg-outer);
+            }
+
+            img {
+                max-width: 100%;
+                max-height: min(50vh, 400px);
+                object-fit: contain;
+            }
+
+            @media (max-height: 700px) {
+                :root {
+                    --pad: clamp(0.8rem, 2vw, 2rem);
+                    --title-size: clamp(1.4rem, 4vw, 2.6rem);
+                    --h2-size: clamp(1.1rem, 2.5vw, 1.9rem);
+                }
+            }
+            @media (max-height: 600px) {
+                :root {
+                    --pad: clamp(0.5rem, 1.5vw, 1.2rem);
+                    --body-size: clamp(0.62rem, 1vw, 0.85rem);
+                }
+                .nav-dots-wrap {
+                    display: none;
+                }
+            }
+            @media (max-height: 500px) {
+                :root {
+                    --pad: 0.4rem;
+                    --title-size: clamp(1rem, 3vw, 1.6rem);
+                    --h2-size: clamp(0.9rem, 2vw, 1.3rem);
+                }
+            }
+            @media (prefers-reduced-motion: reduce) {
+                *,
+                *::before,
+                *::after {
+                    animation-duration: 0.01ms !important;
+                    transition-duration: 0.2s !important;
+                }
+                html {
+                    scroll-behavior: auto;
+                }
+            }
+
+            /* === PAPER CARD === */
+            .paper {
+                background: var(--bg-page);
+                width: min(92%, 1140px);
+                height: min(87vh, 700px);
+                display: grid;
+                grid-template-columns: clamp(20px, 2.5vw, 30px) 1fr clamp(
+                        18px,
+                        2vw,
+                        26px
+                    );
+                box-shadow:
+                    0 14px 55px rgba(0, 0, 0, 0.45),
+                    0 2px 8px rgba(0, 0, 0, 0.2);
+                border-radius: 2px;
+                overflow: hidden;
+            }
+
+            /* Binder holes */
+            .holes {
+                background: #eae5dc;
+                border-right: 1px solid #d0c9be;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: space-evenly;
+                padding: clamp(1.5rem, 4vh, 3rem) 0;
+            }
+            .hole {
+                width: clamp(8px, 1vw, 13px);
+                height: clamp(8px, 1vw, 13px);
+                border-radius: 50%;
+                background: var(--bg-outer);
+                box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.35);
+            }
+
+            /* Page area */
+            .page {
+                display: flex;
+                flex-direction: column;
+                padding: var(--pad);
+                gap: var(--gap);
+                overflow: hidden;
+                min-height: 0;
+            }
+
+            /* Section tabs */
+            .tabs {
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+            .tab {
+                flex: 1;
+                writing-mode: vertical-rl;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-family: "DM Sans", sans-serif;
+                font-size: clamp(0.4rem, 0.52vw, 0.56rem);
+                font-weight: 500;
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+                color: rgba(0, 0, 0, 0.38);
+                opacity: 0.65;
+                user-select: none;
+            }
+            .tab.on {
+                opacity: 1;
+                color: rgba(0, 0, 0, 0.6);
+                font-weight: 600;
+            }
+            .tab-intro {
+                background: var(--tab-mint);
+            }
+            .tab-brain {
+                background: var(--tab-lav);
+            }
+            .tab-loop {
+                background: var(--tab-pink);
+            }
+            .tab-world {
+                background: var(--tab-sky);
+            }
+            .tab-recap {
+                background: var(--tab-cream);
+            }
+
+            /* Page header / footer */
+            .ph,
+            .pf {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                flex-shrink: 0;
+            }
+            .ph {
+                border-bottom: 1px solid var(--rule);
+                padding-bottom: clamp(0.35rem, 0.7vh, 0.7rem);
+            }
+            .pf {
+                border-top: 1px solid var(--rule);
+                padding-top: clamp(0.35rem, 0.7vh, 0.7rem);
+            }
+            .ph span,
+            .pf span {
+                font-family: "DM Sans", sans-serif;
+                font-size: var(--small-size);
+                color: var(--text-meta);
+                letter-spacing: 0.06em;
+            }
+            .ph .lbl {
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.14em;
+            }
+
+            /* Main content zone */
+            .body {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                gap: var(--gap);
+                overflow: hidden;
+                min-height: 0;
+            }
+
+            /* === TYPOGRAPHY === */
+            .t-title {
+                font-family: "Bodoni Moda", serif;
+                font-weight: 700;
+                font-size: var(--title-size);
+                line-height: 1;
+                color: var(--text-pri);
+                letter-spacing: -0.01em;
+            }
+            .t-title em {
+                font-style: italic;
+                color: var(--accent);
+            }
+            .t-title .w {
+                color: var(--accent);
+                font-style: italic;
+            }
+
+            .t-h2 {
+                font-family: "Bodoni Moda", serif;
+                font-weight: 700;
+                font-size: var(--h2-size);
+                line-height: 1.1;
+                color: var(--text-pri);
+                letter-spacing: -0.01em;
+            }
+            .t-h2 em {
+                font-style: italic;
+                color: var(--accent);
+            }
+
+            .t-body {
+                font-family: "DM Sans", sans-serif;
+                font-size: var(--body-size);
+                line-height: 1.6;
+                color: var(--text-sec);
+            }
+
+            .t-sub {
+                font-family: "DM Sans", sans-serif;
+                font-size: clamp(0.82rem, 1.35vw, 1.05rem);
+                font-weight: 300;
+                font-style: italic;
+                color: var(--text-sec);
+            }
+
+            /* === RULE === */
+            .rule {
+                width: clamp(2rem, 4vw, 4rem);
+                height: 1px;
+                background: var(--rule);
+                flex-shrink: 0;
+            }
+
+            /* === BULLETS === */
+            .blist {
+                list-style: none;
+                display: flex;
+                flex-direction: column;
+                gap: clamp(0.28rem, 0.65vh, 0.65rem);
+            }
+            .blist li {
+                font-family: "DM Sans", sans-serif;
+                font-size: var(--body-size);
+                line-height: 1.45;
+                color: var(--text-sec);
+                display: flex;
+                align-items: flex-start;
+                gap: 0.55rem;
+            }
+            .blist li::before {
+                content: "—";
+                color: var(--text-meta);
+                flex-shrink: 0;
+            }
+            .blist li strong {
+                color: var(--text-pri);
+                font-weight: 600;
+            }
+
+            /* === CALLOUT === */
+            .callout {
+                background: var(--bg-muted);
+                border-left: 3px solid var(--tab-cream);
+                border-radius: 0 3px 3px 0;
+                padding: clamp(0.5rem, 0.9vh, 0.9rem)
+                    clamp(0.6rem, 1.1vw, 1.1rem);
+            }
+            .callout p {
+                font-family: "DM Sans", sans-serif;
+                font-size: clamp(0.62rem, 0.95vw, 0.82rem);
+                line-height: 1.55;
+                color: var(--text-sec);
+                font-style: italic;
+            }
+
+            /* === 4-COL GRID (ops) === */
+            .g4 {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: clamp(0.4rem, 0.8vw, 0.8rem);
+            }
+            .op {
+                background: var(--bg-muted);
+                border-radius: 3px;
+                padding: clamp(0.55rem, 1vw, 1rem)
+                    clamp(0.45rem, 0.85vw, 0.85rem);
+                display: flex;
+                flex-direction: column;
+                gap: clamp(0.2rem, 0.4vh, 0.4rem);
+                border-top: 3px solid var(--rule);
+            }
+            .op.c1 {
+                border-top-color: var(--tab-mint);
+            }
+            .op.c2 {
+                border-top-color: var(--tab-lav);
+            }
+            .op.c3 {
+                border-top-color: var(--tab-pink);
+            }
+            .op.c4 {
+                border-top-color: var(--tab-sky);
+            }
+            .op-h {
+                font-family: "Bodoni Moda", serif;
+                font-weight: 700;
+                font-size: clamp(0.85rem, 1.3vw, 1.1rem);
+                color: var(--text-pri);
+            }
+            .op-d {
+                font-family: "DM Sans", sans-serif;
+                font-size: clamp(0.58rem, 0.85vw, 0.75rem);
+                line-height: 1.4;
+                color: var(--text-sec);
+            }
+
+            /* === 3-COL GRID (windows/tools) === */
+            .g3 {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: clamp(0.4rem, 0.8vw, 0.8rem);
+            }
+            .wc {
+                background: var(--bg-muted);
+                border-radius: 3px;
+                padding: clamp(0.65rem, 1.1vw, 1.1rem) clamp(0.55rem, 1vw, 1rem);
+                display: flex;
+                flex-direction: column;
+                gap: clamp(0.2rem, 0.4vh, 0.4rem);
+            }
+            .wc:nth-child(1) {
+                border-top: 3px solid var(--tab-mint);
+            }
+            .wc:nth-child(2) {
+                border-top: 3px solid var(--tab-lav);
+            }
+            .wc:nth-child(3) {
+                border-top: 3px solid var(--tab-sky);
+            }
+            .wc-h {
+                font-family: "Bodoni Moda", serif;
+                font-weight: 700;
+                font-size: clamp(0.85rem, 1.3vw, 1.1rem);
+                color: var(--text-pri);
+            }
+            .wc-d {
+                font-family: "DM Sans", sans-serif;
+                font-size: clamp(0.58rem, 0.85vw, 0.75rem);
+                line-height: 1.4;
+                color: var(--text-sec);
+            }
+
+            /* === 2x2 ANATOMY GRID === */
+            .g2x2 {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: 1fr 1fr;
+                gap: clamp(0.4rem, 0.8vw, 0.8rem);
+            }
+            .ac {
+                background: var(--bg-muted);
+                border-radius: 3px;
+                padding: clamp(0.6rem, 1vw, 1rem);
+                display: flex;
+                align-items: center;
+                gap: clamp(0.5rem, 0.9vw, 0.9rem);
+            }
+            .ac-icon {
+                font-family: "Bodoni Moda", serif;
+                font-weight: 700;
+                font-style: italic;
+                font-size: clamp(1.2rem, 2vw, 1.7rem);
+                flex-shrink: 0;
+                width: clamp(1.8rem, 3vw, 2.6rem);
+                text-align: center;
+            }
+            .ac-text {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+            }
+            .ac-part {
+                font-family: "Bodoni Moda", serif;
+                font-weight: 700;
+                font-size: clamp(0.75rem, 1.1vw, 0.95rem);
+                color: var(--text-pri);
+            }
+            .ac-what {
+                font-family: "DM Sans", sans-serif;
+                font-size: clamp(0.58rem, 0.82vw, 0.72rem);
+                line-height: 1.35;
+                color: var(--text-sec);
+            }
+
+            /* === LOOP DIAGRAM === */
+            .loop-row {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: clamp(0.35rem, 0.7vw, 0.7rem);
+                flex-wrap: nowrap;
+            }
+            .ls {
+                background: var(--bg-muted);
+                border-radius: 3px;
+                padding: clamp(0.45rem, 0.8vw, 0.8rem)
+                    clamp(0.5rem, 0.9vw, 0.9rem);
+                text-align: center;
+                flex-shrink: 0;
+                display: flex;
+                flex-direction: column;
+                gap: 3px;
+                min-width: clamp(62px, 9vw, 100px);
+            }
+            .ls-h {
+                font-family: "Bodoni Moda", serif;
+                font-weight: 700;
+                font-size: clamp(0.7rem, 1vw, 0.9rem);
+                color: var(--text-pri);
+            }
+            .ls-d {
+                font-family: "DM Sans", sans-serif;
+                font-size: clamp(0.48rem, 0.65vw, 0.6rem);
+                line-height: 1.3;
+                color: var(--text-sec);
+            }
+            .ls.l0 {
+                border-top: 3px solid var(--tab-cream);
+            }
+            .ls.l1 {
+                border-top: 3px solid var(--tab-mint);
+            }
+            .ls.l2 {
+                border-top: 3px solid var(--tab-lav);
+            }
+            .ls.l3 {
+                border-top: 3px solid var(--tab-pink);
+            }
+            .ls.l4 {
+                border-top: 3px solid var(--tab-sky);
+            }
+            .arr {
+                font-family: "DM Sans", sans-serif;
+                font-size: clamp(0.7rem, 1vw, 0.9rem);
+                color: var(--text-meta);
+                flex-shrink: 0;
+            }
+
+            /* === TAGS === */
+            .tag-row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.4rem;
+            }
+            .tag {
+                background: var(--bg-muted);
+                border-radius: 100px;
+                padding: 0.22em 0.7em;
+                font-family: "DM Sans", sans-serif;
+                font-size: clamp(0.52rem, 0.75vw, 0.66rem);
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+                color: var(--text-sec);
+            }
+
+            /* === AUTHOR === */
+            .author-row {
+                display: flex;
+                align-items: center;
+                gap: clamp(0.35rem, 0.7vw, 0.7rem);
+            }
+            .av {
+                width: clamp(20px, 2vw, 30px);
+                height: clamp(20px, 2vw, 30px);
+                border-radius: 50%;
+                background: var(--tab-mint);
+                flex-shrink: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-family: "Bodoni Moda", serif;
+                font-weight: 700;
+                font-size: clamp(0.55rem, 0.8vw, 0.75rem);
+                color: var(--text-pri);
+            }
+            .av-name {
+                font-family: "DM Sans", sans-serif;
+                font-size: var(--small-size);
+                color: var(--text-meta);
+            }
+
+            /* === REVEAL ANIMATIONS === */
+            .reveal {
+                opacity: 0;
+                transform: translateY(18px);
+                transition:
+                    opacity 0.52s var(--ease),
+                    transform 0.52s var(--ease);
+            }
+            .slide.vis .reveal {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            .reveal:nth-child(1) {
+                transition-delay: 0.04s;
+            }
+            .reveal:nth-child(2) {
+                transition-delay: 0.13s;
+            }
+            .reveal:nth-child(3) {
+                transition-delay: 0.22s;
+            }
+            .reveal:nth-child(4) {
+                transition-delay: 0.31s;
+            }
+            .reveal:nth-child(5) {
+                transition-delay: 0.39s;
+            }
+            .reveal:nth-child(6) {
+                transition-delay: 0.46s;
+            }
+
+            /* === PROGRESS BAR === */
+            #prog {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 2px;
+                width: 0%;
+                background: var(--tab-mint);
+                z-index: 1000;
+                transition: width 0.35s ease;
+            }
+
+            /* === INLINE EDITING === */
+            .edit-hotzone {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 80px;
+                height: 80px;
+                z-index: 10000;
+                cursor: pointer;
+            }
+            #editBtn {
+                position: fixed;
+                top: 14px;
+                left: 14px;
+                width: 34px;
+                height: 34px;
+                border-radius: 50%;
+                background: var(--bg-page);
+                border: 1px solid var(--rule);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 0.85rem;
+                cursor: pointer;
+                z-index: 10001;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.3s ease;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+            }
+            #editBtn.show,
+            #editBtn.on {
+                opacity: 1;
+                pointer-events: auto;
+            }
+            #editBanner {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: rgba(42, 42, 42, 0.92);
+                color: var(--bg-page);
+                font-family: "DM Sans", sans-serif;
+                font-size: var(--small-size);
+                padding: 0.45rem 1.4rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                z-index: 9999;
+                opacity: 0;
+                pointer-events: none;
+                transform: translateY(100%);
+                transition:
+                    opacity 0.3s ease,
+                    transform 0.3s ease;
+            }
+            #editBanner.on {
+                opacity: 1;
+                pointer-events: auto;
+                transform: translateY(0);
+            }
+            body.editing [contenteditable] {
+                outline: 1.5px dashed rgba(152, 212, 187, 0.55);
+                border-radius: 2px;
+                cursor: text;
+            }
+            body.editing [contenteditable]:focus {
+                outline: 1.5px solid var(--tab-mint);
+            }
+        </style>
+    </head>
+    <body>
+        <div id="prog"></div>
+        <div class="edit-hotzone" id="hz"></div>
+        <button id="editBtn" title="Edit mode (E)">&#9998;</button>
+        <div id="editBanner">
+            <span>Edit mode — click any text to edit</span>
+            <span>Ctrl+S to save &nbsp;·&nbsp; E to exit</span>
+        </div>
+
+        <!-- Macro for tabs: each slide hardcodes which tab is active -->
+
+        <!-- ======================================================
+     SLIDE 01 · TITLE
+====================================================== -->
+        <section class="slide" id="s1">
+            <div class="paper">
+                <div class="holes">
+                    <div class="hole"></div>
+                    <div class="hole"></div>
+                    <div class="hole"></div>
+                </div>
+                <div class="page">
+                    <div class="ph">
+                        <span class="lbl">Conference Talk · 2026</span
+                        ><span>01 / 15</span>
+                    </div>
+                    <div class="body">
+                        <h1 class="t-title reveal">
+                            The <em>Anatomy</em><br />of an
+                            <span class="w">AI Agent</span>
+                        </h1>
+                        <div class="rule reveal"></div>
+                        <p class="t-sub reveal">
+                            with a focus on document agents
+                        </p>
+                        <div class="author-row reveal">
+                            <div class="av">C</div>
+                            <span class="av-name"
+                                ><a
+                                    href="https://www.linkedin.com/in/clelia-astra-bertelli-583904297"
+                                    >Clelia Astra Bertelli</a
+                                >
+                                &nbsp;·&nbsp; LlamaIndex &nbsp;;</span
+                            >
+                        </div>
+                    </div>
+                    <div class="pf">
+                        <span>Voxel51 Meetup Stuttgart · 21st April 2026</span
+                        ><span></span>
+                    </div>
+                </div>
+                <div class="tabs">
+                    <div class="tab tab-intro on">Intro</div>
+                    <div class="tab tab-brain">Brain</div>
+                    <div class="tab tab-loop">Loop</div>
+                    <div class="tab tab-world">World</div>
+                    <div class="tab tab-recap">Recap</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================================================
+     SLIDE 02 · AGENTS ARE EVERYWHERE
+====================================================== -->
+        <section class="slide" id="s2">
+            <div class="paper">
+                <div class="holes">
+                    <div class="hole"></div>
+                    <div class="hole"></div>
+                    <div class="hole"></div>
+                </div>
+                <div class="page">
+                    <div class="ph">
+                        <span class="lbl">Introduction</span
+                        ><span>02 / 15</span>
+                    </div>
+                    <div class="body">
+                        <h2 class="t-h2 reveal">
+                            Agents are <em>everywhere</em>
+                        </h2>
+                        <div class="rule reveal"></div>
+                        <ul class="blist reveal">
+                            <li>
+                                2025 saw AI agents move from research curiosity
+                                to everyday tools
+                            </li>
+                            <li>
+                                <strong
+                                    >Manus, Claude Code, Gemini, ChatGPT
+                                    operator mode:</strong
+                                >
+                                each changed how we work
+                            </li>
+                            <li>
+                                2026: agentic workflows are becoming the
+                                default, not the exception
+                            </li>
+                            <li>
+                                They browse the web, write code, process
+                                documents, manage tasks autonomously
+                            </li>
+                        </ul>
+                        <div class="callout reveal">
+                            <p>
+                                "From Manus to Claude Code, AI agents are making
+                                their way into the everyday life of everyone of
+                                us."
+                            </p>
+                        </div>
+                    </div>
+                    <div class="pf">
+                        <span>Voxel51 Meetup Stuttgart · 21st April 2026</span
+                        ><span></span>
+                    </div>
+                </div>
+                <div class="tabs">
+                    <div class="tab tab-intro on">Intro</div>
+                    <div class="tab tab-brain">Brain</div>
+                    <div class="tab tab-loop">Loop</div>
+                    <div class="tab tab-world">World</div>
+                    <div class="tab tab-recap">Recap</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================================================
+     SLIDE 03 · WHAT MAKES A GOOD AGENT
+====================================================== -->
+        <section class="slide" id="s3">
+            <div class="paper">
+                <div class="holes">
+                    <div class="hole"></div>
+                    <div class="hole"></div>
+                    <div class="hole"></div>
+                </div>
+                <div class="page">
+                    <div class="ph">
+                        <span class="lbl">Introduction</span
+                        ><span>03 / 15</span>
+                    </div>
+                    <div class="body">
+                        <h2 class="t-h2 reveal">
+                            What makes a <em>good</em> AI agent?
+                        </h2>
+                        <div class="rule reveal"></div>
+                        <p class="t-body reveal">
+                            In this talk, we'll answer that question by going
+                            through the anatomy of one. We'll explore:
+                        </p>
+                        <ul class="blist reveal">
+                            <li>
+                                <strong>How it thinks &amp; acts</strong> —
+                                structured reasoning and tool use
+                            </li>
+                            <li>
+                                <strong>How it interacts with the world</strong>
+                                — filesystem, tools, chat interfaces
+                            </li>
+                            <li>
+                                <strong>How to control its flow</strong> —
+                                event-driven loops and step execution
+                            </li>
+                            <li>
+                                <strong
+                                    >How to give it the right context</strong
+                                >
+                                — avoiding hallucinations, staying safe
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="pf">
+                        <span>Voxel51 Meetup Stuttgart · 21st April 2026</span
+                        ><span></span>
+                    </div>
+                </div>
+                <div class="tabs">
+                    <div class="tab tab-intro on">Intro</div>
+                    <div class="tab tab-brain">Brain</div>
+                    <div class="tab tab-loop">Loop</div>
+                    <div class="tab tab-world">World</div>
+                    <div class="tab tab-recap">Recap</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================================================
+     SLIDE 04 · THE BRAIN: LLM AS FOUNDATION
+====================================================== -->
+        <section class="slide" id="s4">
+            <div class="paper">
+                <div class="holes">
+                    <div class="hole"></div>
+                    <div class="hole"></div>
+                    <div class="hole"></div>
+                </div>
+                <div class="page">
+                    <div class="ph">
+                        <span class="lbl">The Brain</span><span>04 / 15</span>
+                    </div>
+                    <div class="body">
+                        <h2 class="t-h2 reveal">
+                            The <em>Brain</em>: LLM as Foundation
+                        </h2>
+                        <div class="rule reveal"></div>
+                        <ul class="blist reveal">
+                            <li>
+                                The LLM is the <strong>main actor:</strong> it
+                                produces thoughts, observations and actions
+                            </li>
+                            <li>
+                                Given the previous chat history, it reasons
+                                about what to do next
+                            </li>
+                            <li>
+                                Problem: LLMs are
+                                <strong>non-deterministic</strong> by nature
+                            </li>
+                            <li>
+                                Solution: <strong>structured outputs:</strong>
+                                JSON schemas that steer the model precisely
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="pf">
+                        <span>Voxel51 Meetup Stuttgart · 21st April 2026</span
+                        ><span></span>
+                    </div>
+                </div>
+                <div class="tabs">
+                    <div class="tab tab-intro">Intro</div>
+                    <div class="tab tab-brain on">Brain</div>
+                    <div class="tab tab-loop">Loop</div>
+                    <div class="tab tab-world">World</div>
+                    <div class="tab tab-recap">Recap</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================================================
+     SLIDE 05 · STRUCTURED OUTPUTS
+====================================================== -->
+        <section class="slide" id="s5">
+            <div class="paper">
+                <div class="holes">
+                    <div class="hole"></div>
+                    <div class="hole"></div>
+                    <div class="hole"></div>
+                </div>
+                <div class="page">
+                    <div class="ph">
+                        <span class="lbl">The Brain</span><span>05 / 15</span>
+                    </div>
+                    <div class="body">
+                        <h2 class="t-h2 reveal">
+                            Steering the LLM:<br /><em>Structured Outputs</em>
+                        </h2>
+                        <div class="rule reveal"></div>
+                        <p class="t-body reveal">
+                            Every LLM call in the agent uses structured
+                            generation: the model must respond in a predefined
+                            JSON schema, making outputs machine-readable and
+                            reliable.
+                        </p>
+                        <ul class="blist reveal">
+                            <li>
+                                No free-form prose: every response has a typed,
+                                schema-validated structure
+                            </li>
+                            <li>
+                                Schemas are purpose-built per operation: think,
+                                act, observe, stop
+                            </li>
+                            <li>
+                                Forces clear separation of
+                                <strong>reasoning</strong> and
+                                <strong>action</strong>
+                            </li>
+                            <li>
+                                The agent wrapper exposes
+                                <em>only</em> structured generation methods
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="pf">
+                        <span>Voxel51 Meetup Stuttgart · 21st April 2026</span
+                        ><span></span>
+                    </div>
+                </div>
+                <div class="tabs">
+                    <div class="tab tab-intro">Intro</div>
+                    <div class="tab tab-brain on">Brain</div>
+                    <div class="tab tab-loop">Loop</div>
+                    <div class="tab tab-world">World</div>
+                    <div class="tab tab-recap">Recap</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================================================
+     SLIDE 06 · FOUR OPERATIONS
+====================================================== -->
+        <section class="slide" id="s6">
+            <div class="paper">
+                <div class="holes">
+                    <div class="hole"></div>
+                    <div class="hole"></div>
+                    <div class="hole"></div>
+                </div>
+                <div class="page">
+                    <div class="ph">
+                        <span class="lbl">The Brain</span><span>06 / 15</span>
+                    </div>
+                    <div class="body">
+                        <h2 class="t-h2 reveal">
+                            The Four <em>Operations</em>
+                        </h2>
+                        <div class="rule reveal"></div>
+                        <div class="g4 reveal">
+                            <div class="op c1">
+                                <span class="op-h">Think</span>
+                                <span class="op-d"
+                                    >Reason about the next action based on
+                                    history and current state</span
+                                >
+                            </div>
+                            <div class="op c2">
+                                <span class="op-h">Act</span>
+                                <span class="op-d"
+                                    >Call a tool (based on the thought trace
+                                    produced in the previous step)</span
+                                >
+                            </div>
+                            <div class="op c3">
+                                <span class="op-h">Observe</span>
+                                <span class="op-d"
+                                    >Evaluate tool results and update the
+                                    agent's understanding</span
+                                >
+                            </div>
+                            <div class="op c4">
+                                <span class="op-h">Stop</span>
+                                <span class="op-d"
+                                    >Recognize task completion and exit the loop
+                                    gracefully</span
+                                >
+                            </div>
+                        </div>
+                        <p class="t-body reveal" style="font-style: italic">
+                            These four operations, driven by structured outputs,
+                            are the base for the agent loop.
+                        </p>
+                    </div>
+                    <div class="pf">
+                        <span>Voxel51 Meetup Stuttgart · 21st April 2026</span
+                        ><span></span>
+                    </div>
+                </div>
+                <div class="tabs">
+                    <div class="tab tab-intro">Intro</div>
+                    <div class="tab tab-brain on">Brain</div>
+                    <div class="tab tab-loop">Loop</div>
+                    <div class="tab tab-world">World</div>
+                    <div class="tab tab-recap">Recap</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================================================
+     SLIDE 07 · THE AGENT LOOP
+====================================================== -->
+        <section class="slide" id="s7">
+            <div class="paper">
+                <div class="holes">
+                    <div class="hole"></div>
+                    <div class="hole"></div>
+                    <div class="hole"></div>
+                </div>
+                <div class="page">
+                    <div class="ph">
+                        <span class="lbl">The Loop</span><span>07 / 15</span>
+                    </div>
+                    <div class="body">
+                        <h2 class="t-h2 reveal">
+                            The Loop: <em>Task Executor</em>
+                        </h2>
+                        <div class="rule reveal"></div>
+                        <p class="t-body reveal">
+                            The agent loop is a
+                            <strong
+                                ><a
+                                    href="https://github.com/run-llama/llama-agents"
+                                    >LlamaIndex Agent Workflow</a
+                                ></strong
+                            >
+                            — an event-driven, stepwise execution engine that
+                            connects the LLM to the external world.
+                        </p>
+                        <ul class="blist reveal">
+                            <li>
+                                A user prompt arrives as an
+                                <strong>input event</strong>, signalling the
+                                start of the workflow
+                            </li>
+                            <li>
+                                Each step dispatches a typed event to the next:
+                                think &rarr; act or stop &rarr; observe &rarr;
+                                think
+                            </li>
+                            <li>
+                                Tool results feed back as observations,
+                                restarting the think step
+                            </li>
+                            <li>
+                                The loop runs until the LLM produces a Stop
+                                (after at least one full cycle)
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="pf">
+                        <span>Voxel51 Meetup Stuttgart · 21st April 2026</span
+                        ><span></span>
+                    </div>
+                </div>
+                <div class="tabs">
+                    <div class="tab tab-intro">Intro</div>
+                    <div class="tab tab-brain">Brain</div>
+                    <div class="tab tab-loop on">Loop</div>
+                    <div class="tab tab-world">World</div>
+                    <div class="tab tab-recap">Recap</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================================================
+     SLIDE 08 · LOOP DIAGRAM
+====================================================== -->
+        <section class="slide" id="s8">
+            <div class="paper">
+                <div class="holes">
+                    <div class="hole"></div>
+                    <div class="hole"></div>
+                    <div class="hole"></div>
+                </div>
+                <div class="page">
+                    <div class="ph">
+                        <span class="lbl">The Loop</span><span>08 / 15</span>
+                    </div>
+                    <div class="body">
+                        <h2 class="t-h2 reveal">
+                            Event-Driven <em>Execution</em>
+                        </h2>
+                        <div class="rule reveal"></div>
+                        <div class="loop-row reveal">
+                            <div class="ls l0">
+                                <span class="ls-h">Input</span
+                                ><span class="ls-d">User prompt received</span>
+                            </div>
+                            <span class="arr">&rarr;</span>
+                            <div class="ls l1">
+                                <span class="ls-h">Think</span
+                                ><span class="ls-d"
+                                    >Reason about next action</span
+                                >
+                            </div>
+                            <span class="arr">&rarr;</span>
+                            <div class="ls l2">
+                                <span class="ls-h">Act</span
+                                ><span class="ls-d">Call a tool</span>
+                            </div>
+                            <span class="arr">&rarr;</span>
+                            <div class="ls l3">
+                                <span class="ls-h">Observe</span
+                                ><span class="ls-d">Process tool result</span>
+                            </div>
+                            <span class="arr">&circlearrowleft;</span>
+                            <div class="ls l4">
+                                <span class="ls-h">Stop</span
+                                ><span class="ls-d">Task complete</span>
+                            </div>
+                        </div>
+                        <div class="callout reveal">
+                            <p>
+                                After each Observe, the loop restarts from Think
+                                — until the LLM decides all tasks and sub-tasks
+                                are done and produces a Stop event.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="pf">
+                        <span>Voxel51 Meetup Stuttgart · 21st April 2026</span
+                        ><span></span>
+                    </div>
+                </div>
+                <div class="tabs">
+                    <div class="tab tab-intro">Intro</div>
+                    <div class="tab tab-brain">Brain</div>
+                    <div class="tab tab-loop on">Loop</div>
+                    <div class="tab tab-world">World</div>
+                    <div class="tab tab-recap">Recap</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================================================
+     SLIDE 09 · WINDOWS ON THE WORLD
+====================================================== -->
+        <section class="slide" id="s9">
+            <div class="paper">
+                <div class="holes">
+                    <div class="hole"></div>
+                    <div class="hole"></div>
+                    <div class="hole"></div>
+                </div>
+                <div class="page">
+                    <div class="ph">
+                        <span class="lbl">World</span><span>09 / 15</span>
+                    </div>
+                    <div class="body">
+                        <h2 class="t-h2 reveal">
+                            Windows on <em>the World</em>
+                        </h2>
+                        <div class="rule reveal"></div>
+                        <p class="t-body reveal">
+                            The LLM loop is a <em>generalist</em> architecture.
+                            What defines a
+                            <strong>document processing agent</strong> are the
+                            interfaces through which it interacts with the
+                            external environment.
+                        </p>
+                        <div class="g3 reveal">
+                            <div class="wc">
+                                <span class="wc-h">Filesystem</span>
+                                <span class="wc-d"
+                                    >The source of documents — files are read,
+                                    written and managed here</span
+                                >
+                            </div>
+                            <div class="wc">
+                                <span class="wc-h">Tools</span>
+                                <span class="wc-d"
+                                    >Document parsing, extraction and
+                                    classification via LlamaParse</span
+                                >
+                            </div>
+                            <div class="wc">
+                                <span class="wc-h">Chat Interface</span>
+                                <span class="wc-d"
+                                    >In our case, a Telegram bot for async
+                                    communication and document uploads</span
+                                >
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pf">
+                        <span>Voxel51 Meetup Stuttgart · 21st April 2026</span
+                        ><span></span>
+                    </div>
+                </div>
+                <div class="tabs">
+                    <div class="tab tab-intro">Intro</div>
+                    <div class="tab tab-brain">Brain</div>
+                    <div class="tab tab-loop">Loop</div>
+                    <div class="tab tab-world on">World</div>
+                    <div class="tab tab-recap">Recap</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================================================
+     SLIDE 10 · THE EYES: FILESYSTEM
+====================================================== -->
+        <section class="slide" id="s10">
+            <div class="paper">
+                <div class="holes">
+                    <div class="hole"></div>
+                    <div class="hole"></div>
+                    <div class="hole"></div>
+                </div>
+                <div class="page">
+                    <div class="ph">
+                        <span class="lbl">World · Filesystem</span
+                        ><span>10 / 15</span>
+                    </div>
+                    <div class="body">
+                        <h2 class="t-h2 reveal">
+                            The <em>Eyes</em>: Virtual Filesystem
+                        </h2>
+                        <div class="rule reveal"></div>
+                        <ul class="blist reveal">
+                            <li>
+                                Agent uses
+                                <strong
+                                    ><a
+                                        href="https://github.com/tursodatabase/agentfs"
+                                        >AgentFS</a
+                                    ></strong
+                                >: a virtualized filesystem, not the real
+                                machine one
+                            </li>
+                            <li>
+                                Full FS access for autonomous agents is
+                                dangerous, especially on shared machines
+                            </li>
+                            <li>
+                                Exposed operations:
+                                <strong>read, write, edit only</strong>, no
+                                delete or shell execution
+                            </li>
+                            <li>
+                                Scope is limited to the working directory and
+                                its children
+                            </li>
+                        </ul>
+                        <div class="callout reveal">
+                            <p>
+                                Even if the agent is tricked into writing
+                                malicious files, the real machine filesystem
+                                remains completely unaffected as the virtual FS
+                                absorbs the damage, which does not permeate the
+                                real machine unless you sync it with the virtual
+                                one.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="pf">
+                        <span>Voxel51 Meetup Stuttgart · 21st April 2026</span
+                        ><span></span>
+                    </div>
+                </div>
+                <div class="tabs">
+                    <div class="tab tab-intro">Intro</div>
+                    <div class="tab tab-brain">Brain</div>
+                    <div class="tab tab-loop">Loop</div>
+                    <div class="tab tab-world on">World</div>
+                    <div class="tab tab-recap">Recap</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================================================
+     SLIDE 11 · THE LIMBS: DOCUMENT TOOLS
+====================================================== -->
+        <section class="slide" id="s11">
+            <div class="paper">
+                <div class="holes">
+                    <div class="hole"></div>
+                    <div class="hole"></div>
+                    <div class="hole"></div>
+                </div>
+                <div class="page">
+                    <div class="ph">
+                        <span class="lbl">World · Tools</span
+                        ><span>11 / 15</span>
+                    </div>
+                    <div class="body">
+                        <h2 class="t-h2 reveal">
+                            The <em>Limbs</em>: Document Tools
+                        </h2>
+                        <div class="rule reveal"></div>
+                        <p class="t-body reveal">
+                            Beyond plain-text file ops, the document agent uses
+                            <strong
+                                ><a href="https://cloud.llamaindex.ai"
+                                    >LlamaParse</a
+                                ></strong
+                            >
+                            tools that genuinely understand unstructured content
+                            (PDFs, Word docs, PowerPoint, Excel and more).
+                        </p>
+                        <div class="g3 reveal">
+                            <div class="wc">
+                                <span class="wc-h">Parse</span>
+                                <span class="wc-d"
+                                    >Full text parsing using OCR, VLMs and
+                                    agentic approaches for any file format</span
+                                >
+                            </div>
+                            <div class="wc">
+                                <span class="wc-h">Extract</span>
+                                <span class="wc-d"
+                                    >Structured data extraction following a
+                                    custom JSON schema you define</span
+                                >
+                            </div>
+                            <div class="wc">
+                                <span class="wc-h">Classify</span>
+                                <span class="wc-d"
+                                    >Document classification into user-defined
+                                    categories at scale</span
+                                >
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pf">
+                        <span>Voxel51 Meetup Stuttgart · 21st April 2026</span
+                        ><span></span>
+                    </div>
+                </div>
+                <div class="tabs">
+                    <div class="tab tab-intro">Intro</div>
+                    <div class="tab tab-brain">Brain</div>
+                    <div class="tab tab-loop">Loop</div>
+                    <div class="tab tab-world on">World</div>
+                    <div class="tab tab-recap">Recap</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================================================
+     SLIDE 12 · THE EARS & MOUTH: CHAT INTERFACE
+====================================================== -->
+        <section class="slide" id="s12">
+            <div class="paper">
+                <div class="holes">
+                    <div class="hole"></div>
+                    <div class="hole"></div>
+                    <div class="hole"></div>
+                </div>
+                <div class="page">
+                    <div class="ph">
+                        <span class="lbl">World · Chat Interface</span
+                        ><span>12 / 15</span>
+                    </div>
+                    <div class="body">
+                        <h2 class="t-h2 reveal">
+                            The <em>Ears &amp; Mouth</em>: Chat Interface
+                        </h2>
+                        <div class="rule reveal"></div>
+                        <ul class="blist reveal">
+                            <li>
+                                Users send
+                                <strong>.txt, .pdf, .docx</strong> documents via
+                                Telegram — the agent downloads them to AgentFS
+                            </li>
+                            <li>
+                                Text messages trigger agent tasks with full
+                                autonomous execution
+                            </li>
+                            <li>
+                                Key design choice:
+                                <strong>asynchronous</strong> (no loading
+                                spinners, push notifications when done)
+                            </li>
+                            <li>
+                                Perfectly matches LlamaIndex Workflows, which
+                                are async-first by design
+                            </li>
+                        </ul>
+                        <div class="callout reveal">
+                            <p>
+                                Document workflows can take minutes to half an
+                                hour. The agent works in the background and
+                                pings you when finished: just like a colleague,
+                                not a spinner :)
+                            </p>
+                        </div>
+                    </div>
+                    <div class="pf">
+                        <span>Voxel51 Meetup Stuttgart · 21st April 2026</span
+                        ><span></span>
+                    </div>
+                </div>
+                <div class="tabs">
+                    <div class="tab tab-intro">Intro</div>
+                    <div class="tab tab-brain">Brain</div>
+                    <div class="tab tab-loop">Loop</div>
+                    <div class="tab tab-world on">World</div>
+                    <div class="tab tab-recap">Recap</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================================================
+     SLIDE 13 · SAFETY
+====================================================== -->
+        <section class="slide" id="s13">
+            <div class="paper">
+                <div class="holes">
+                    <div class="hole"></div>
+                    <div class="hole"></div>
+                    <div class="hole"></div>
+                </div>
+                <div class="page">
+                    <div class="ph">
+                        <span class="lbl">Recap · Safety</span
+                        ><span>13 / 15</span>
+                    </div>
+                    <div class="body">
+                        <h2 class="t-h2 reveal">A Note on <em>Safety</em></h2>
+                        <div class="rule reveal"></div>
+                        <ul class="blist reveal">
+                            <li>
+                                <strong>Virtual filesystem</strong> — no access
+                                to the real machine FS
+                            </li>
+                            <li>
+                                <strong>No shell execution</strong> — agent
+                                cannot run bash commands
+                            </li>
+                            <li>
+                                <strong>Read / write / edit only</strong> — no
+                                delete, no destructive operations
+                            </li>
+                            <li>
+                                <strong>No skill execution</strong> — behavior
+                                is extended via AGENTS.md, not runnable code
+                            </li>
+                        </ul>
+                        <div class="callout reveal">
+                            <p>
+                                This is not a 100% guarantee. Prompt injection
+                                can still exfiltrate data from documents the
+                                agent has access to. Always monitor what the
+                                agent sees and how it behaves.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="pf">
+                        <span>Voxel51 Meetup Stuttgart · 21st April 2026</span
+                        ><span></span>
+                    </div>
+                </div>
+                <div class="tabs">
+                    <div class="tab tab-intro">Intro</div>
+                    <div class="tab tab-brain">Brain</div>
+                    <div class="tab tab-loop">Loop</div>
+                    <div class="tab tab-world">World</div>
+                    <div class="tab tab-recap on">Recap</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================================================
+     SLIDE 14 · THE FULL ANATOMY
+====================================================== -->
+        <section class="slide" id="s14">
+            <div class="paper">
+                <div class="holes">
+                    <div class="hole"></div>
+                    <div class="hole"></div>
+                    <div class="hole"></div>
+                </div>
+                <div class="page">
+                    <div class="ph">
+                        <span class="lbl">Recap · Anatomy</span
+                        ><span>14 / 15</span>
+                    </div>
+                    <div class="body">
+                        <h2 class="t-h2 reveal">The Full <em>Anatomy</em></h2>
+                        <div class="rule reveal"></div>
+                        <div class="g2x2 reveal">
+                            <div
+                                class="ac"
+                                style="border-top: 2px solid var(--tab-lav)"
+                            >
+                                <span class="ac-icon" style="color: #8a7dbe"
+                                    >B</span
+                                >
+                                <div class="ac-text">
+                                    <span class="ac-part">The Brain</span>
+                                    <span class="ac-what"
+                                        >LLM — thinks, observes and acts via
+                                        structured outputs</span
+                                    >
+                                </div>
+                            </div>
+                            <div
+                                class="ac"
+                                style="border-top: 2px solid var(--tab-mint)"
+                            >
+                                <span
+                                    class="ac-icon"
+                                    style="color: var(--accent)"
+                                    >E</span
+                                >
+                                <div class="ac-text">
+                                    <span class="ac-part">The Eyes</span>
+                                    <span class="ac-what"
+                                        >Virtual filesystem — the agent's source
+                                        of documents</span
+                                    >
+                                </div>
+                            </div>
+                            <div
+                                class="ac"
+                                style="border-top: 2px solid var(--tab-pink)"
+                            >
+                                <span class="ac-icon" style="color: #b06070"
+                                    >L</span
+                                >
+                                <div class="ac-text">
+                                    <span class="ac-part">The Limbs</span>
+                                    <span class="ac-what"
+                                        >Tools — LlamaParse, LlamaExtract,
+                                        LlamaClassify</span
+                                    >
+                                </div>
+                            </div>
+                            <div
+                                class="ac"
+                                style="border-top: 2px solid var(--tab-sky)"
+                            >
+                                <span class="ac-icon" style="color: #4a7898"
+                                    >M</span
+                                >
+                                <div class="ac-text">
+                                    <span class="ac-part"
+                                        >Ears &amp; Mouth</span
+                                    >
+                                    <span class="ac-what"
+                                        >Chat interface — listens to input,
+                                        replies asynchronously</span
+                                    >
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pf">
+                        <span>Voxel51 Meetup Stuttgart · 21st April 2026</span
+                        ><span></span>
+                    </div>
+                </div>
+                <div class="tabs">
+                    <div class="tab tab-intro">Intro</div>
+                    <div class="tab tab-brain">Brain</div>
+                    <div class="tab tab-loop">Loop</div>
+                    <div class="tab tab-world">World</div>
+                    <div class="tab tab-recap on">Recap</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================================================
+     SLIDE 15 · KEY TAKEAWAYS
+====================================================== -->
+        <section class="slide" id="s15">
+            <div class="paper">
+                <div class="holes">
+                    <div class="hole"></div>
+                    <div class="hole"></div>
+                    <div class="hole"></div>
+                </div>
+                <div class="page">
+                    <div class="ph">
+                        <span class="lbl">Recap · Takeaways</span
+                        ><span>15 / 15</span>
+                    </div>
+                    <div class="body">
+                        <h2 class="t-h2 reveal">Key <em>Takeaways</em></h2>
+                        <div class="rule reveal"></div>
+                        <ul class="blist reveal">
+                            <li>
+                                <strong>Structured outputs</strong> are what
+                                make LLM behaviour reliable inside an agent
+                            </li>
+                            <li>
+                                <strong>Event-driven loops</strong> turn a model
+                                into an autonomous, self-reflecting task
+                                executor
+                            </li>
+                            <li>
+                                <strong>Virtual filesystems</strong> enable
+                                safe, bounded document access without real-FS
+                                risk
+                            </li>
+                            <li>
+                                <strong>Async chat interfaces</strong> unlock
+                                long-running document workflows without blocking
+                                the user
+                            </li>
+                        </ul>
+                        <div class="tag-row reveal">
+                            <br />
+                            <span class="tag"
+                                ><a
+                                    href="https://github.com/AstraBert/workflows-acp/tree/main/packages/lobsterx"
+                                    >GitHub Repository</a
+                                ></span
+                            >
+                        </div>
+                        <div class="author-row reveal">
+                            <div class="av">C</div>
+                            <span class="av-name"
+                                >Clelia Astra Bertelli &nbsp;·&nbsp;
+                                <a href="mailto:clelia@runllama.ai"
+                                    >clelia@runllama.ai</a
+                                >
+                                &nbsp;·&nbsp;
+                                <a
+                                    href="https://www.linkedin.com/in/clelia-astra-bertelli-583904297/"
+                                    >LinkedIn</a
+                                >
+                                &nbsp;·&nbsp;
+                                <a href="https://x.com/@itsclelia">X</a>
+                                &nbsp;·&nbsp;
+                                <a href="https://clelia.dev"
+                                    >Personal Website</a
+                                ></span
+                            >
+                        </div>
+                    </div>
+                    <div class="pf">
+                        <span>Thank you!</span><span>Questions?</span>
+                    </div>
+                </div>
+                <div class="tabs">
+                    <div class="tab tab-intro">Intro</div>
+                    <div class="tab tab-brain">Brain</div>
+                    <div class="tab tab-loop">Loop</div>
+                    <div class="tab tab-world">World</div>
+                    <div class="tab tab-recap on">Recap</div>
+                </div>
+            </div>
+        </section>
+
+        <script>
+            /* === SLIDE PRESENTATION CONTROLLER === */
+            class Deck {
+                constructor() {
+                    this.slides = Array.from(
+                        document.querySelectorAll(".slide"),
+                    );
+                    this.cur = 0;
+                    this.prog = document.getElementById("prog");
+
+                    this.setupObserver();
+                    this.setupKeys();
+                    this.setupWheel();
+                    this.setupTouch();
+                    this.buildDots();
+                    this.setupEditor();
+
+                    this.slides[0].classList.add("vis");
+                    this.updateUI(0);
+                }
+
+                setupObserver() {
+                    const io = new IntersectionObserver(
+                        (entries) => {
+                            entries.forEach((e) => {
+                                if (e.isIntersecting) {
+                                    e.target.classList.add("vis");
+                                    this.cur = this.slides.indexOf(e.target);
+                                    this.updateUI(this.cur);
+                                }
+                            });
+                        },
+                        { threshold: 0.5 },
+                    );
+                    this.slides.forEach((s) => io.observe(s));
+                }
+
+                go(i) {
+                    if (i < 0 || i >= this.slides.length) return;
+                    this.slides[i].scrollIntoView({ behavior: "smooth" });
+                }
+
+                setupKeys() {
+                    document.addEventListener("keydown", (e) => {
+                        const inEdit =
+                            document.body.classList.contains("editing") &&
+                            e.target.getAttribute("contenteditable");
+                        if (inEdit) return;
+                        if (
+                            [
+                                "ArrowDown",
+                                "ArrowRight",
+                                " ",
+                                "PageDown",
+                            ].includes(e.key)
+                        ) {
+                            e.preventDefault();
+                            this.go(this.cur + 1);
+                        } else if (
+                            ["ArrowUp", "ArrowLeft", "PageUp"].includes(e.key)
+                        ) {
+                            e.preventDefault();
+                            this.go(this.cur - 1);
+                        } else if (e.key === "Home") {
+                            e.preventDefault();
+                            this.go(0);
+                        } else if (e.key === "End") {
+                            e.preventDefault();
+                            this.go(this.slides.length - 1);
+                        }
+                    });
+                }
+
+                setupWheel() {
+                    let last = 0;
+                    document.addEventListener(
+                        "wheel",
+                        (e) => {
+                            e.preventDefault();
+                            const now = Date.now();
+                            if (now - last < 650) return;
+                            last = now;
+                            this.go(this.cur + (e.deltaY > 0 ? 1 : -1));
+                        },
+                        { passive: false },
+                    );
+                }
+
+                setupTouch() {
+                    let sy = 0;
+                    document.addEventListener(
+                        "touchstart",
+                        (e) => {
+                            sy = e.touches[0].clientY;
+                        },
+                        { passive: true },
+                    );
+                    document.addEventListener(
+                        "touchend",
+                        (e) => {
+                            const d = sy - e.changedTouches[0].clientY;
+                            if (Math.abs(d) > 45)
+                                this.go(this.cur + (d > 0 ? 1 : -1));
+                        },
+                        { passive: true },
+                    );
+                }
+
+                updateUI(i) {
+                    const pct =
+                        this.slides.length > 1
+                            ? (i / (this.slides.length - 1)) * 100
+                            : 0;
+                    if (this.prog) this.prog.style.width = pct + "%";
+                    if (this.dots) {
+                        Array.from(this.dots.children).forEach((d, j) => {
+                            d.style.background =
+                                j === i
+                                    ? "rgba(248,246,241,0.88)"
+                                    : "rgba(248,246,241,0.28)";
+                            d.style.transform =
+                                j === i ? "scale(1.45)" : "scale(1)";
+                        });
+                    }
+                }
+
+                buildDots() {
+                    const nav = document.createElement("nav");
+                    nav.className = "nav-dots-wrap";
+                    nav.setAttribute("aria-label", "Slide navigation");
+                    nav.style.cssText =
+                        "position:fixed;right:clamp(8px,1.5vw,14px);top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:5px;z-index:500;";
+                    this.slides.forEach((_, i) => {
+                        const b = document.createElement("button");
+                        b.style.cssText =
+                            "width:6px;height:6px;border-radius:50%;background:rgba(248,246,241,0.28);border:none;cursor:pointer;padding:0;transition:background 0.3s,transform 0.3s;";
+                        b.setAttribute("aria-label", "Slide " + (i + 1));
+                        b.addEventListener("click", () => this.go(i));
+                        nav.appendChild(b);
+                    });
+                    document.body.appendChild(nav);
+                    this.dots = nav;
+                    this.updateUI(0);
+                }
+
+                /* === INLINE EDITOR === */
+                setupEditor() {
+                    const hz = document.getElementById("hz");
+                    const btn = document.getElementById("editBtn");
+                    const banner = document.getElementById("editBanner");
+                    let active = false;
+                    let hideT = null;
+
+                    const show = () => {
+                        clearTimeout(hideT);
+                        btn.classList.add("show");
+                    };
+                    const hide = () => {
+                        hideT = setTimeout(() => {
+                            if (!active) btn.classList.remove("show");
+                        }, 400);
+                    };
+
+                    hz.addEventListener("mouseenter", show);
+                    hz.addEventListener("mouseleave", hide);
+                    btn.addEventListener("mouseenter", show);
+                    btn.addEventListener("mouseleave", hide);
+                    hz.addEventListener("click", () =>
+                        this.toggleEdit(
+                            active,
+                            btn,
+                            banner,
+                            (v) => (active = v),
+                        ),
+                    );
+                    btn.addEventListener("click", () =>
+                        this.toggleEdit(
+                            active,
+                            btn,
+                            banner,
+                            (v) => (active = v),
+                        ),
+                    );
+
+                    document.addEventListener("keydown", (e) => {
+                        if (
+                            (e.key === "e" || e.key === "E") &&
+                            !e.target.getAttribute("contenteditable")
+                        ) {
+                            this.toggleEdit(
+                                active,
+                                btn,
+                                banner,
+                                (v) => (active = v),
+                            );
+                        }
+                        if (e.ctrlKey && e.key === "s" && active) {
+                            e.preventDefault();
+                            this.exportFile(btn, banner);
+                        }
+                    });
+                }
+
+                toggleEdit(active, btn, banner, set) {
+                    active = !active;
+                    set(active);
+                    document.body.classList.toggle("editing", active);
+                    btn.textContent = active ? "\u2713" : "\u270E";
+                    btn.classList.toggle("on", active);
+                    banner.classList.toggle("on", active);
+                    const sel =
+                        ".t-title,.t-h2,.t-body,.t-sub,.blist li,.callout p,.op-h,.op-d,.wc-h,.wc-d,.ac-part,.ac-what,.ls-h,.ls-d,.av-name,.tag,.lbl";
+                    document.querySelectorAll(sel).forEach((el) => {
+                        if (active) el.setAttribute("contenteditable", "true");
+                        else el.removeAttribute("contenteditable");
+                    });
+                }
+
+                exportFile(btn, banner) {
+                    const els = Array.from(
+                        document.querySelectorAll("[contenteditable]"),
+                    );
+                    els.forEach((el) => el.removeAttribute("contenteditable"));
+                    document.body.classList.remove("editing");
+                    btn.classList.remove("on", "show");
+                    banner.classList.remove("on");
+
+                    const html =
+                        "<!DOCTYPE html>\n" +
+                        document.documentElement.outerHTML;
+
+                    document.body.classList.add("editing");
+                    els.forEach((el) =>
+                        el.setAttribute("contenteditable", "true"),
+                    );
+                    btn.classList.add("on");
+                    banner.classList.add("on");
+
+                    const a = document.createElement("a");
+                    a.href = URL.createObjectURL(
+                        new Blob([html], { type: "text/html" }),
+                    );
+                    a.download = "agent-anatomy.html";
+                    a.click();
+                    URL.revokeObjectURL(a.href);
+                }
+            }
+
+            new Deck();
+        </script>
+    </body>
+</html>
