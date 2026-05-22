@@ -636,7 +636,8 @@
                 line-height: 1.45;
                 color: var(--text-sec);
             }
-            .kv-v code {
+            .kv-v code,
+            .blist code {
                 font-family: "JetBrains Mono", "Menlo", monospace;
                 background: var(--bg-muted);
                 padding: 1px 5px;
@@ -709,9 +710,7 @@
                             <span class="w">LobsterX</span>
                         </h1>
                         <div class="rule reveal"></div>
-                        <p class="t-sub reveal">
-                            a document processing agent — dissected
-                        </p>
+                        <p class="t-sub reveal">a document processing agent</p>
                         <div class="author-row reveal">
                             <div class="av">C</div>
                             <span class="av-name"
@@ -724,8 +723,7 @@
                         </div>
                     </div>
                     <div class="pf">
-                        <span
-                            >Redefine Document Workflows with AI Agents</span
+                        <span>Redefine Document Workflows with AI Agents</span
                         ><span></span>
                     </div>
                 </div>
@@ -780,8 +778,7 @@
                         </p>
                     </div>
                     <div class="pf">
-                        <span
-                            >Redefine Document Workflows with AI Agents</span
+                        <span>Redefine Document Workflows with AI Agents</span
                         ><span></span>
                     </div>
                 </div>
@@ -813,27 +810,27 @@
                         <div class="rule reveal"></div>
                         <ul class="blist reveal">
                             <li>
-                                DevRel engineer at
-                                <strong>LlamaIndex</strong> — I work on the OSS
-                                framework, docs and developer tooling
+                                Member of Technical Staff @
+                                <strong>LlamaIndex</strong>, where i work on
+                                agents, retrieval systems and OSS
                             </li>
                             <li>
-                                Background in computational biology, then
-                                slowly drifted into agent infrastructure
+                                Background in computational biology, then slowly
+                                drifted into AI and engineering
                             </li>
                             <li>
                                 I build small, opinionated agents to stress-test
                                 the framework I work on
                             </li>
                             <li>
-                                Today: a guided tour of one of them —
+                                Today: a guided tour of one of them
+                                <span class="arr">&rarr;</span>
                                 <strong>LobsterX</strong> 🦞
                             </li>
                         </ul>
                     </div>
                     <div class="pf">
-                        <span
-                            >Redefine Document Workflows with AI Agents</span
+                        <span>Redefine Document Workflows with AI Agents</span
                         ><span></span>
                     </div>
                 </div>
@@ -861,9 +858,7 @@
                         ><span>03 / 17</span>
                     </div>
                     <div class="body">
-                        <h2 class="t-h2 reveal">
-                            What is <em>LobsterX</em>?
-                        </h2>
+                        <h2 class="t-h2 reveal">What is <em>LobsterX</em>?</h2>
                         <div class="rule reveal"></div>
                         <p class="t-body reveal">
                             A document-processing AI agent that lives in a
@@ -898,8 +893,7 @@
                         </p>
                     </div>
                     <div class="pf">
-                        <span
-                            >Redefine Document Workflows with AI Agents</span
+                        <span>Redefine Document Workflows with AI Agents</span
                         ><span></span>
                     </div>
                 </div>
@@ -932,10 +926,10 @@
                         </h2>
                         <div class="rule reveal"></div>
                         <p class="t-body reveal">
-                            Most agents look like a black box: prompt in,
-                            answer out. The interesting engineering lives in
-                            the gap between those two. We'll walk through it
-                            using four anatomical metaphors:
+                            Most agents look like a black box: prompt in, answer
+                            out. The interesting engineering lives in the gap
+                            between those two. We'll walk through it using four
+                            anatomical metaphors:
                         </p>
                         <ul class="blist reveal">
                             <li>
@@ -951,14 +945,13 @@
                                 filesystem and tools it touches
                             </li>
                             <li>
-                                <strong>Ears &amp; Mouth</strong> — how it
-                                talks to a human
+                                <strong>Ears &amp; Mouth</strong> — how it talks
+                                to a human
                             </li>
                         </ul>
                     </div>
                     <div class="pf">
-                        <span
-                            >Redefine Document Workflows with AI Agents</span
+                        <span>Redefine Document Workflows with AI Agents</span
                         ><span></span>
                     </div>
                 </div>
@@ -996,8 +989,8 @@
                             </li>
                             <li>
                                 But LLMs are
-                                <strong>non-deterministic</strong>: same
-                                prompt, different shapes of output
+                                <strong>non-deterministic</strong>: same prompt,
+                                different shapes of output
                             </li>
                             <li>
                                 For an agent, that's fatal. You can't parse
@@ -1006,21 +999,20 @@
                             </li>
                             <li>
                                 We need a way to
-                                <strong>constrain</strong> the model's output
-                                to something the rest of the system can rely on
+                                <strong>constrain</strong> the model's output to
+                                something the rest of the system can rely on
                             </li>
                         </ul>
                         <div class="callout reveal">
                             <p>
                                 If the brain is unreliable, every downstream
-                                step inherits that unreliability. The fix has
-                                to start at the LLM call itself.
+                                step inherits that unreliability. The fix has to
+                                start at the LLM call itself.
                             </p>
                         </div>
                     </div>
                     <div class="pf">
-                        <span
-                            >Redefine Document Workflows with AI Agents</span
+                        <span>Redefine Document Workflows with AI Agents</span
                         ><span></span>
                     </div>
                 </div>
@@ -1053,9 +1045,9 @@
                         <div class="rule reveal"></div>
                         <p class="t-body reveal">
                             Every LLM call in LobsterX is constrained by a
-                            <strong>typed JSON schema</strong>. The model
-                            cannot reply with free-form prose — it must fill in
-                            a known shape.
+                            <strong>typed JSON schema</strong>. The model cannot
+                            reply with free-form prose — it must fill in a known
+                            shape.
                         </p>
                         <ul class="blist reveal">
                             <li>
@@ -1070,8 +1062,8 @@
                             <li>
                                 The LLM wrapper exposes
                                 <em>only</em> structured-generation methods —
-                                there is no "raw chat" escape hatch in the
-                                agent code
+                                there is no "raw chat" escape hatch in the agent
+                                code
                             </li>
                             <li>
                                 Same schema works across OpenAI, Anthropic and
@@ -1080,8 +1072,7 @@
                         </ul>
                     </div>
                     <div class="pf">
-                        <span
-                            >Redefine Document Workflows with AI Agents</span
+                        <span>Redefine Document Workflows with AI Agents</span
                         ><span></span>
                     </div>
                 </div>
@@ -1095,7 +1086,7 @@
             </div>
         </section>
 
-        <!-- ====== SLIDE 07 · FOUR OPERATIONS ====== -->
+        <!-- ====== SLIDE 07 · THE LOOP (concept) ====== -->
         <section class="slide" id="s7">
             <div class="paper">
                 <div class="holes">
@@ -1105,75 +1096,7 @@
                 </div>
                 <div class="page">
                     <div class="ph">
-                        <span class="lbl">The Brain</span><span>07 / 17</span>
-                    </div>
-                    <div class="body">
-                        <h2 class="t-h2 reveal">
-                            Four <em>Operations</em>, four schemas
-                        </h2>
-                        <div class="rule reveal"></div>
-                        <div class="g4 reveal">
-                            <div class="op c1">
-                                <span class="op-h">Think</span>
-                                <span class="op-d"
-                                    >Reason about the next move given history
-                                    and current state</span
-                                >
-                            </div>
-                            <div class="op c2">
-                                <span class="op-h">Act</span>
-                                <span class="op-d"
-                                    >Emit a tool call — name and validated
-                                    arguments</span
-                                >
-                            </div>
-                            <div class="op c3">
-                                <span class="op-h">Observe</span>
-                                <span class="op-d"
-                                    >Interpret the tool result and update
-                                    working memory</span
-                                >
-                            </div>
-                            <div class="op c4">
-                                <span class="op-h">Stop</span>
-                                <span class="op-d"
-                                    >Declare the task done and emit a final
-                                    answer</span
-                                >
-                            </div>
-                        </div>
-                        <p class="t-body reveal" style="font-style: italic">
-                            Each operation is one structured-generation call.
-                            Composing them gives us the loop.
-                        </p>
-                    </div>
-                    <div class="pf">
-                        <span
-                            >Redefine Document Workflows with AI Agents</span
-                        ><span></span>
-                    </div>
-                </div>
-                <div class="tabs">
-                    <div class="tab tab-intro">Intro</div>
-                    <div class="tab tab-brain on">Brain</div>
-                    <div class="tab tab-loop">Loop</div>
-                    <div class="tab tab-world">World</div>
-                    <div class="tab tab-recap">Recap</div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ====== SLIDE 08 · THE LOOP ====== -->
-        <section class="slide" id="s8">
-            <div class="paper">
-                <div class="holes">
-                    <div class="hole"></div>
-                    <div class="hole"></div>
-                    <div class="hole"></div>
-                </div>
-                <div class="page">
-                    <div class="ph">
-                        <span class="lbl">The Loop</span><span>08 / 17</span>
+                        <span class="lbl">The Loop</span><span>07 / 17</span>
                     </div>
                     <div class="body">
                         <h2 class="t-h2 reveal">
@@ -1206,14 +1129,13 @@
                                 doesn't block anything else
                             </li>
                             <li>
-                                Loops are not special cases — they're just
-                                steps that re-emit upstream event types
+                                Loops are not special cases — they're just steps
+                                that re-emit upstream event types
                             </li>
                         </ul>
                     </div>
                     <div class="pf">
-                        <span
-                            >Redefine Document Workflows with AI Agents</span
+                        <span>Redefine Document Workflows with AI Agents</span
                         ><span></span>
                     </div>
                 </div>
@@ -1227,8 +1149,8 @@
             </div>
         </section>
 
-        <!-- ====== SLIDE 09 · LOOP DIAGRAM ====== -->
-        <section class="slide" id="s9">
+        <!-- ====== SLIDE 08 · LOOP DIAGRAM ====== -->
+        <section class="slide" id="s8">
             <div class="paper">
                 <div class="holes">
                     <div class="hole"></div>
@@ -1237,7 +1159,7 @@
                 </div>
                 <div class="page">
                     <div class="ph">
-                        <span class="lbl">The Loop</span><span>09 / 17</span>
+                        <span class="lbl">The Loop</span><span>08 / 17</span>
                     </div>
                     <div class="body">
                         <h2 class="t-h2 reveal">
@@ -1252,7 +1174,9 @@
                             <span class="arr">&rarr;</span>
                             <div class="ls l1">
                                 <span class="ls-h">Think</span
-                                ><span class="ls-d">Pick next action</span>
+                                ><span class="ls-d"
+                                    >Reason about next step</span
+                                >
                             </div>
                             <span class="arr">&rarr;</span>
                             <div class="ls l2">
@@ -1272,16 +1196,15 @@
                         </div>
                         <div class="callout reveal">
                             <p>
-                                After every Observe the loop re-enters Think —
-                                until a Think decides the task is done and
-                                emits Stop. Each arrow is a typed event;
-                                nothing else couples the steps.
+                                Each arrow is a typed event. Observe re-enters
+                                Think until Think decides the task is done and
+                                emits Stop — at which point the workflow
+                                terminates and the answer goes back to the user.
                             </p>
                         </div>
                     </div>
                     <div class="pf">
-                        <span
-                            >Redefine Document Workflows with AI Agents</span
+                        <span>Redefine Document Workflows with AI Agents</span
                         ><span></span>
                     </div>
                 </div>
@@ -1295,8 +1218,8 @@
             </div>
         </section>
 
-        <!-- ====== SLIDE 10 · WINDOWS ON THE WORLD ====== -->
-        <section class="slide" id="s10">
+        <!-- ====== SLIDE 09 · WINDOWS ON THE WORLD ====== -->
+        <section class="slide" id="s9">
             <div class="paper">
                 <div class="holes">
                     <div class="hole"></div>
@@ -1305,7 +1228,7 @@
                 </div>
                 <div class="page">
                     <div class="ph">
-                        <span class="lbl">World</span><span>10 / 17</span>
+                        <span class="lbl">World</span><span>09 / 17</span>
                     </div>
                     <div class="body">
                         <h2 class="t-h2 reveal">
@@ -1343,8 +1266,7 @@
                         </div>
                     </div>
                     <div class="pf">
-                        <span
-                            >Redefine Document Workflows with AI Agents</span
+                        <span>Redefine Document Workflows with AI Agents</span
                         ><span></span>
                     </div>
                 </div>
@@ -1358,8 +1280,8 @@
             </div>
         </section>
 
-        <!-- ====== SLIDE 11 · AGENTFS ====== -->
-        <section class="slide" id="s11">
+        <!-- ====== SLIDE 10 · AGENTFS ====== -->
+        <section class="slide" id="s10">
             <div class="paper">
                 <div class="holes">
                     <div class="hole"></div>
@@ -1369,7 +1291,7 @@
                 <div class="page">
                     <div class="ph">
                         <span class="lbl">World · Filesystem</span
-                        ><span>11 / 17</span>
+                        ><span>10 / 17</span>
                     </div>
                     <div class="body">
                         <h2 class="t-h2 reveal">
@@ -1384,12 +1306,13 @@
                                         href="https://github.com/tursodatabase/agentfs"
                                         >AgentFS</a
                                     ></strong
-                                >, a virtualized layer — not the real machine
-                                FS
+                                >, a virtualized layer — not the real machine FS
                             </li>
                             <li>
                                 The agent gets
-                                <strong>read / write / edit / grep / glob</strong>
+                                <strong
+                                    >read / write / edit / grep / glob</strong
+                                >
                                 — no delete, no shell execution
                             </li>
                             <li>
@@ -1407,14 +1330,13 @@
                             <p>
                                 If the agent is jailbroken into writing
                                 something destructive, the damage stays inside
-                                the virtual FS. Nothing leaks to the host
-                                unless you explicitly sync it.
+                                the virtual FS. Nothing leaks to the host unless
+                                you explicitly sync it.
                             </p>
                         </div>
                     </div>
                     <div class="pf">
-                        <span
-                            >Redefine Document Workflows with AI Agents</span
+                        <span>Redefine Document Workflows with AI Agents</span
                         ><span></span>
                     </div>
                 </div>
@@ -1428,8 +1350,8 @@
             </div>
         </section>
 
-        <!-- ====== SLIDE 12 · DOCUMENT TOOLS ====== -->
-        <section class="slide" id="s12">
+        <!-- ====== SLIDE 11 · DOCUMENT TOOLS (overview) ====== -->
+        <section class="slide" id="s11">
             <div class="paper">
                 <div class="holes">
                     <div class="hole"></div>
@@ -1439,7 +1361,7 @@
                 <div class="page">
                     <div class="ph">
                         <span class="lbl">World · Tools</span
-                        ><span>12 / 17</span>
+                        ><span>11 / 17</span>
                     </div>
                     <div class="body">
                         <h2 class="t-h2 reveal">
@@ -1462,7 +1384,8 @@
                                 <span class="wc-h">LlamaParse</span>
                                 <span class="wc-d"
                                     >Full-text parsing of PDFs, Office docs and
-                                    more via OCR, VLMs and agentic pipelines</span
+                                    more via OCR, VLMs and agentic
+                                    pipelines</span
                                 >
                             </div>
                             <div class="wc">
@@ -1475,15 +1398,90 @@
                             <div class="wc">
                                 <span class="wc-h">LlamaClassify</span>
                                 <span class="wc-d"
-                                    >Classification into user-defined
-                                    categories with confidence signals</span
+                                    >Classification into user-defined categories
+                                    with confidence signals</span
                                 >
                             </div>
                         </div>
                     </div>
                     <div class="pf">
-                        <span
-                            >Redefine Document Workflows with AI Agents</span
+                        <span>Redefine Document Workflows with AI Agents</span
+                        ><span></span>
+                    </div>
+                </div>
+                <div class="tabs">
+                    <div class="tab tab-intro">Intro</div>
+                    <div class="tab tab-brain">Brain</div>
+                    <div class="tab tab-loop">Loop</div>
+                    <div class="tab tab-world on">World</div>
+                    <div class="tab tab-recap">Recap</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ====== SLIDE 12 · DOC TOOLS DEEP DIVE ====== -->
+        <section class="slide" id="s12">
+            <div class="paper">
+                <div class="holes">
+                    <div class="hole"></div>
+                    <div class="hole"></div>
+                    <div class="hole"></div>
+                </div>
+                <div class="page">
+                    <div class="ph">
+                        <span class="lbl">World · Tools</span
+                        ><span>12 / 17</span>
+                    </div>
+                    <div class="body">
+                        <h2 class="t-h2 reveal">
+                            Why these tools <em>change the game</em>
+                        </h2>
+                        <div class="rule reveal"></div>
+                        <p class="t-body reveal">
+                            A document agent is only as good as its eyes on
+                            unstructured content. Generic OCR isn't enough —
+                            layout, tables and figures all carry meaning that
+                            naive text extraction loses.
+                        </p>
+                        <div class="kv reveal">
+                            <div class="kv-row">
+                                <span class="kv-k">LlamaParse</span>
+                                <span class="kv-v"
+                                    >Layout-aware parsing for PDFs, DOCX, PPTX,
+                                    XLSX, images. Tables stay as tables; figures
+                                    get described by VLMs; reading order is
+                                    preserved across columns.</span
+                                >
+                            </div>
+                            <div class="kv-row">
+                                <span class="kv-k">LlamaExtract</span>
+                                <span class="kv-v"
+                                    >You hand it a JSON schema, it hands you
+                                    back populated objects — typed,
+                                    citation-linked, validated. No glue prompt
+                                    engineering on the agent side.</span
+                                >
+                            </div>
+                            <div class="kv-row">
+                                <span class="kv-k">LlamaClassify</span>
+                                <span class="kv-v"
+                                    >User-defined categories with confidence
+                                    signals — the agent uses it to route
+                                    documents (invoice? contract? report?)
+                                    before deciding what to do next.</span
+                                >
+                            </div>
+                        </div>
+                        <div class="callout reveal">
+                            <p>
+                                Each tool exposes a typed input schema, so the
+                                Act step can call them with full
+                                structured-output guarantees end to end.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="pf">
+                        <span>Redefine Document Workflows with AI Agents</span
                         ><span></span>
                     </div>
                 </div>
@@ -1523,8 +1521,8 @@
                             </li>
                             <li>
                                 Documents come in as message attachments and
-                                land in AgentFS. Text messages are dispatched
-                                as workflow inputs
+                                land in AgentFS. Text messages are dispatched as
+                                workflow inputs
                             </li>
                             <li>
                                 Document workflows can take minutes to half an
@@ -1544,8 +1542,7 @@
                         </div>
                     </div>
                     <div class="pf">
-                        <span
-                            >Redefine Document Workflows with AI Agents</span
+                        <span>Redefine Document Workflows with AI Agents</span
                         ><span></span>
                     </div>
                 </div>
@@ -1578,8 +1575,8 @@
                         </h2>
                         <div class="rule reveal"></div>
                         <p class="t-body reveal">
-                            The Telegram bot is one frontend. The same
-                            agent core also runs as a FastAPI server, with the
+                            The Telegram bot is one frontend. The same agent
+                            core also runs as a FastAPI server, with the
                             workflow's async-first shape carried all the way
                             through.
                         </p>
@@ -1605,15 +1602,14 @@
                             <div class="kv-row">
                                 <span class="kv-k">Auth &amp; CORS</span>
                                 <span class="kv-v"
-                                    >Starlette middlewares: bearer-token auth
-                                    + configurable allowed origins</span
+                                    >Starlette middlewares: bearer-token auth +
+                                    configurable allowed origins</span
                                 >
                             </div>
                         </div>
                     </div>
                     <div class="pf">
-                        <span
-                            >Redefine Document Workflows with AI Agents</span
+                        <span>Redefine Document Workflows with AI Agents</span
                         ><span></span>
                     </div>
                 </div>
@@ -1649,18 +1645,17 @@
                                 exposure of the host FS
                             </li>
                             <li>
-                                <strong>No shell</strong> — the agent cannot
-                                run arbitrary bash
+                                <strong>No shell</strong> — the agent cannot run
+                                arbitrary bash
                             </li>
                             <li>
                                 <strong>Read / write / edit only</strong> — no
                                 delete primitive at all
                             </li>
                             <li>
-                                <strong>No runnable extensions</strong> —
-                                custom behaviour comes in via an
-                                <code>AGENTS.md</code> file, not executable
-                                code
+                                <strong>No skills</strong> — custom behaviour
+                                comes in via an <code>AGENTS.md</code> file, not
+                                via potentially unvetted instructions
                             </li>
                             <li>
                                 <strong>Credential files excluded</strong> from
@@ -1678,8 +1673,7 @@
                         </div>
                     </div>
                     <div class="pf">
-                        <span
-                            >Redefine Document Workflows with AI Agents</span
+                        <span>Redefine Document Workflows with AI Agents</span
                         ><span></span>
                     </div>
                 </div>
@@ -1750,9 +1744,8 @@
                                 <div class="ac-text">
                                     <span class="ac-part">The Limbs</span>
                                     <span class="ac-what"
-                                        >LlamaParse, LlamaExtract,
-                                        LlamaClassify — each a typed tool
-                                        call</span
+                                        >LlamaParse, LlamaExtract, LlamaClassify
+                                        — each a typed tool call</span
                                     >
                                 </div>
                             </div>
@@ -1760,7 +1753,9 @@
                                 class="ac"
                                 style="border-top: 2px solid var(--tab-orange)"
                             >
-                                <span class="ac-icon" style="color: var(--accent)"
+                                <span
+                                    class="ac-icon"
+                                    style="color: var(--accent)"
                                     >M</span
                                 >
                                 <div class="ac-text">
@@ -1776,8 +1771,7 @@
                         </div>
                     </div>
                     <div class="pf">
-                        <span
-                            >Redefine Document Workflows with AI Agents</span
+                        <span>Redefine Document Workflows with AI Agents</span
                         ><span></span>
                     </div>
                 </div>
@@ -1814,9 +1808,16 @@
                                 reliable agent component
                             </li>
                             <li>
-                                <strong>Event-driven workflows</strong> give
-                                you loops, branches and async for free — no
-                                bespoke orchestrator
+                                <strong
+                                    >Layout-aware doc tools (Parse / Extract /
+                                    Classify)</strong
+                                >
+                                are what allows the agent to really understand
+                                unstructured documents
+                            </li>
+                            <li>
+                                <strong>Event-driven workflows</strong> give you
+                                loops, branches and async for free
                             </li>
                             <li>
                                 <strong>Virtual filesystems</strong> let you
@@ -1825,8 +1826,7 @@
                             </li>
                             <li>
                                 <strong>Async interfaces</strong> are the right
-                                shape for long-running document work — pick the
-                                transport accordingly
+                                shape for long-running document work
                             </li>
                         </ul>
                         <div class="tag-row reveal">
